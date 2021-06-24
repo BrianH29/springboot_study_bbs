@@ -3,6 +3,9 @@ package com.bh.bulletin.service;
 import com.bh.bulletin.domain.entity.Board;
 import com.bh.bulletin.dto.BoardDto;
 import com.bh.bulletin.repository.BoardRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -13,6 +16,8 @@ import java.util.Optional;
 @Service
 public class BoardService {
     private BoardRepository boardRepository;
+    private static final int BLOCK_PAGE_NUM_COUNT = 5; // 블럭에 존재하는 페이지 수
+    private static final int PAGE_POST_COUNT = 4;   // 한 페이지 게시글 수
 
     public BoardService(BoardRepository boardRepository) {
         this.boardRepository = boardRepository;
@@ -24,8 +29,12 @@ public class BoardService {
     }
 
     @Transactional
-    public List<BoardDto> getBoardList(){
-        List<Board> boards = boardRepository.findAll();
+    public List<BoardDto> getBoardList(Integer pageNum){
+        //List<Board> boards = boardRepository.findAll();
+
+        //PageRequest.of(limit값, 가져올 양, 정렬방식)
+        Page<Board> page = boardRepository.findAll(PageRequest.of(pageNum-1, PAGE_POST_COUNT, Sort.by(Sort.Direction.ASC,"createdDate")));
+        List<Board> boards = page.getContent();
         List<BoardDto> boardDtoList = new ArrayList<>();
 
         for(Board board : boards){
@@ -39,6 +48,36 @@ public class BoardService {
             boardDtoList.add(boardDto);
         }
         return boardDtoList;
+    }
+
+    @Transactional
+    public Long getBoardCount(){
+        return boardRepository.count();
+    }
+
+    public Integer[] getPageList(Integer curPageNum){
+        Integer[] pageList = new Integer[BLOCK_PAGE_NUM_COUNT];
+
+        //총 개시글 수
+        Double postsTotalCount = Double.valueOf(this.getBoardCount());
+
+        //총 게시글 수를 기준으로 계산한 마지막 페이지
+        Integer totalLastPageNum = (int)(Math.ceil((postsTotalCount/PAGE_POST_COUNT)));
+
+        //현재 페이지 기준으로 블럭의 마지막 페이지 번호 계산
+        Integer blockLastPageNum = (totalLastPageNum > curPageNum + BLOCK_PAGE_NUM_COUNT)
+                ? curPageNum + BLOCK_PAGE_NUM_COUNT
+                : totalLastPageNum;
+
+        //페이지 시작 번호 조정
+        curPageNum = (curPageNum <= 3) ? 1 : curPageNum -2;
+
+        //페이지 번호 할당
+        for(int val = curPageNum, idx=0; val <= blockLastPageNum; val++, idx++){
+            pageList[idx] = val;
+        }
+
+        return pageList;
     }
 
     @Transactional
