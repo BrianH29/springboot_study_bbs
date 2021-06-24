@@ -4,9 +4,7 @@ import com.bh.bulletin.dto.BoardDto;
 import com.bh.bulletin.service.BoardService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -41,5 +39,24 @@ public class BoardController {
         BoardDto boardDto = boardService.getPost(id);
         model.addAttribute("boardDto",boardDto);
         return "detail";
+    }
+
+    @GetMapping("/post/edit/{no}")
+    public String edit(@PathVariable("no") Long id, Model model){
+        BoardDto boardDto = boardService.getPost(id);
+        model.addAttribute("boardDto", boardDto);
+        return "update";
+    }
+
+    @PutMapping("/post/edit/{no}")
+    public String update(BoardDto boardDto){
+        boardService.savePost(boardDto);
+        return "redirect:/";
+    }
+
+    @DeleteMapping("/post/{no}")
+    public String delete(@PathVariable("no") Long id){
+        boardService.deletePost(id);
+        return "redirect:/";
     }
 }

@@ -3,6 +3,6 @@
 - [x] project setup
 - [x] write bulletin 
 - [x] lookup bulletin
-- [ ] edit & delete
+- [x] edit & delete
 - [ ] search
 - [ ] paging 
